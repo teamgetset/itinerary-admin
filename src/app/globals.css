@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* GETSET admin: the brand colours, with a calmer, denser layout than the customer site. */
+@theme {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-navy: #00386c;
+  --color-cobalt: #005894;
+  --color-night: #002142;
+  --color-sun: #fccc50;
+  --color-ink: #0e2238;
+  --color-muted: #52657a;
+  --color-line: #d9e2ec;
+  --color-mist: #f3f6f9;
+  --color-frost: #e8eff6;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+  --color-success: #067647;
+  --color-success-soft: #e6f4ec;
+  --color-warning: #8a5a00;
+  --color-warning-soft: #fff4d6;
+
+  --font-sans: var(--font-mona), ui-sans-serif, system-ui, sans-serif;
+  --radius-card: 0.75rem;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-mist);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-cobalt);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
