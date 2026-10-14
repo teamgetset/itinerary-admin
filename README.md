@@ -10,8 +10,13 @@ npm install
 cp .env.example .env.local    # API_URL and SITE_URL
 npm run dev                   # http://localhost:3001 (the API must be running)
 npm run build && npm start    # production
-npm run lint && npm run typecheck
+npm run lint && npm run typecheck && npm test
 ```
+
+Production builds and servers refuse to start without valid `API_URL` and `SITE_URL` (public `https://` addresses
+on Vercel); only `next dev` falls back to localhost. The check lives in `src/lib/urls.mjs`. On Vercel they also need
+`ADMIN_PROXY_SECRET` (shared with the API; `src/lib/proxy-secret.mjs`), which lets the API rate-limit sign-ins per
+visitor rather than per admin server.
 
 How it talks to the API: sign-in happens in a server action; the session token is kept in an httpOnly cookie on the
 admin's domain, and every API call is made from the admin's server (`src/lib/api.ts`), never from browser code.

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { api, can, currentUser } from "@/lib/api";
+import { API_URL, api, can, currentUser } from "@/lib/api";
 import { CurrencyRow } from "@/components/currency-editor";
 import { PageHeader } from "@/components/ui";
 
@@ -18,7 +18,7 @@ export default async function CurrenciesPage() {
   const [user, { data: currencies }, settings] = await Promise.all([
     currentUser(),
     api<Currency[]>("/admin/currencies"),
-    fetch(`${process.env.API_URL ?? "http://localhost:4000"}/api/public/settings`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
+    fetch(`${API_URL}/api/public/settings`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
   ]);
   const defaultCurrency: string | undefined = settings?.data?.defaultCurrency;
   const canEdit = can(user, "ADMIN");

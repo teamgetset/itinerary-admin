@@ -1,5 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { adminProxySecret, forwardedClientHeaders } from "./proxy-secret.mjs";
+import { adminUrls } from "./urls.mjs";
 
 /*
  * Server-side client for the GETSET API. Only server components, server actions and route handlers use it:
@@ -7,8 +9,11 @@ import { redirect } from "next/navigation";
  * Every call is authorised again by the API, so hiding a page here is only a convenience, not the security.
  */
 
-export const API_URL = process.env.API_URL ?? "http://localhost:4000";
-export const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
+const MODE = { production: process.env.NODE_ENV === "production", vercel: Boolean(process.env.VERCEL) };
+/** Required in production (checked again by next.config.ts); localhost only under `next dev`. */
+export const { API_URL, SITE_URL } = adminUrls(process.env, MODE);
+/** Shared with the API; server-only (see proxy-secret.mjs). */
+const PROXY_SECRET = adminProxySecret(process.env, MODE);
 export const SESSION_COOKIE = "getset_admin_session";
 
 export interface PageMeta {
@@ -52,16 +57,19 @@ export async function api<T>(path: string, init: Init = {}): Promise<{ data: T; 
   return { data: json.data as T, meta: json.meta };
 }
 
-/** Raw request, for streaming files (PDF previews) and the sign-in call. */
+/**
+ * Raw request, for streaming files (PDF previews) and the sign-in call. On Vercel it also tells the API which visitor
+ * this is, proven with ADMIN_PROXY_SECRET, so sign-in limits are per person (proxy-secret.mjs); the API ignores the
+ * address without the secret. X-Forwarded-For is never passed on: the API does not trust it.
+ */
 export async function apiFetch(path: string, init: Init = {}, token?: string) {
-  const forwarded = (await headers()).get("x-forwarded-for");
+  const forwarded = PROXY_SECRET && MODE.vercel ? forwardedClientHeaders(await headers(), PROXY_SECRET, MODE.vercel) : {};
   return fetch(`${API_URL}/api${path}`, {
     method: init.method ?? (init.body || init.form ? "POST" : "GET"),
     headers: {
       ...(token && { authorization: `Bearer ${token}` }),
       ...(init.body !== undefined && { "content-type": "application/json" }),
-      // Lets the API rate-limit sign-ins by the person's address rather than this server's.
-      ...(forwarded && { "x-forwarded-for": forwarded }),
+      ...forwarded,
     },
     body: init.form ?? (init.body !== undefined ? JSON.stringify(init.body) : undefined),
     cache: "no-store",
