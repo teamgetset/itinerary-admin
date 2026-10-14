@@ -10,7 +10,7 @@ import { ItineraryEditor, type ItineraryDayInput } from "@/components/package-ed
 import { PricingEditor } from "@/components/package-editor/pricing-editor";
 import { ActivitiesEditor, GalleryEditor, HotelsEditor } from "@/components/package-editor/collections";
 import { ListEditor } from "@/components/package-editor/shared";
-import { PublishPanel, type PdfVersion } from "@/components/package-editor/publish-panel";
+import { PublishPanel, type ItineraryPdf } from "@/components/package-editor/publish-panel";
 import { Badge, ButtonLink, Card, PageHeader, STATUS_TONE } from "@/components/ui";
 import { updatePackage } from "../actions";
 
@@ -45,6 +45,7 @@ interface EditorPackage extends Record<string, unknown> {
   prices: { currencyCode: string; priceType: string; amount: number }[];
   hotels: { hotelId: string; nights: number; roomType: string | null; mealPlan: string | null; isDefault: boolean }[];
   activities: { activityId: string }[];
+  itineraryPdf: ItineraryPdf | null;
 }
 
 export async function generateMetadata({ params }: PageProps<"/packages/[id]">) {
@@ -123,11 +124,17 @@ export default async function PackageEditorPage({ params, searchParams }: PagePr
         return <PricingEditor packageId={id} initial={pkg.prices} currencies={currencies.data.filter((c) => c.isActive)} />;
       }
       case "publish": {
-        const [check, pdf] = await Promise.all([
-          api<{ checklist: { key: string; label: string; ok: boolean; message?: string }[] }>(`/admin/packages/${id}/publish-check`),
-          api<{ current: PdfVersion | null; upToDate: boolean; versions: PdfVersion[] }>(`/admin/packages/${id}/pdf`),
-        ]);
-        return <PublishPanel packageId={id} status={pkg.status} checklist={check.data.checklist} pdf={pdf.data} canPublish={can(user, "ADMIN")} />;
+        const check = await api<{ checklist: { key: string; label: string; ok: boolean; message?: string }[] }>(`/admin/packages/${id}/publish-check`);
+        return (
+          <PublishPanel
+            packageId={id}
+            status={pkg.status}
+            checklist={check.data.checklist}
+            itineraryPdf={pkg.itineraryPdf}
+            canPublish={can(user, "ADMIN")}
+            canRemovePdf={can(user, "ADMIN")}
+          />
+        );
       }
     }
   })();

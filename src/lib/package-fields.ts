@@ -14,7 +14,7 @@ export const PACKAGE_FIELDS: FieldConfig[] = [
   { name: "bestTime", label: "Best time to go", type: "text", nullable: true, placeholder: "November to March" },
   { name: "arrivalAirportCode", label: "Arrival airport code", type: "text", nullable: true, uppercase: true, placeholder: "KUL" },
   { name: "arrivalCity", label: "Arrival city", type: "text", nullable: true },
-  { name: "heroImageId", label: "Hero image", type: "image", nullable: true, help: "Required to publish. Used on cards, the page and the PDF cover." },
+  { name: "heroImageId", label: "Hero image", type: "image", nullable: true, help: "Required to publish. Used on cards and the package page." },
   { name: "keywords", label: "Search keywords", type: "lines", help: "One per line: words people might search for (honeymoon, skiing)." },
   { name: "importantInfo", label: "Trip-specific notes", type: "lines", help: "One per line. Shown after the site-wide important information.", wide: true },
   { name: "displayOrder", label: "Display order", type: "number", section: "Listing", help: "Lower numbers come first." },

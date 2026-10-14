@@ -124,7 +124,7 @@ export function GalleryEditor({ packageId, initial }: { packageId: string; initi
 
   return (
     <div>
-      <p className="mb-4 text-sm text-muted">The first two photos also appear on the PDF cover, next to the hero image (set in Details).</p>
+      <p className="mb-4 text-sm text-muted">Shown on the package page, in this order, after the hero image (set in Details).</p>
       {images.length === 0 && <p className="mb-3 text-sm text-muted">No gallery photos yet.</p>}
       <ol className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {images.map((image, index) => (

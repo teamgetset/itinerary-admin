@@ -54,7 +54,7 @@ const BLOCKS: { key: string; title: string; description: string; fields: Content
   {
     key: "package.defaults",
     title: "Package defaults",
-    description: "Shown on every package page and itinerary PDF. Changing these rebuilds every PDF on its next download.",
+    description: "Shown on every package page. Uploaded itinerary PDFs are not changed by these notes.",
     fields: [
       { key: "importantInfo", label: "Important information", type: "lines" },
       { key: "terms", label: "Terms and conditions", type: "lines", help: "One clause per line. Leave empty to hide the section." },

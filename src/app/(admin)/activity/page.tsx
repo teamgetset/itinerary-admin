@@ -20,7 +20,7 @@ export default async function ActivityPage({ searchParams }: PageProps<"/activit
   const { data: entries, meta } = await api<Entry[]>(`/admin/audit-logs?pageSize=50&page=${page}`);
   return (
     <>
-      <PageHeader title="Activity log" description="Who changed what, and when: sign-ins, edits, publishing, PDFs. Kept for accountability; passwords and tokens are never recorded." />
+      <PageHeader title="Activity log" description="Who changed what, and when: sign-ins, edits, publishing, itinerary PDF uploads. Kept for accountability; passwords and tokens are never recorded." />
       <Table>
         <thead>
           <tr>

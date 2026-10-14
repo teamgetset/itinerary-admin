@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { api } from "@/lib/api";
 import { attempt, type ActionResult } from "@/lib/action-result";
+import { pdfFileProblem } from "@/lib/pdf-file.mjs";
 
 /* Package editor actions. Each tab saves its own section through the API. */
 
@@ -11,6 +12,7 @@ type Section = (typeof SECTIONS)[number];
 
 const refresh = (id?: string) => {
   revalidatePath("/packages");
+  revalidatePath("/pdfs");
   if (id) revalidatePath(`/packages/${id}`);
 };
 
@@ -33,7 +35,7 @@ export async function savePackageSection(id: string, section: Section, body: unk
   return result;
 }
 
-export type PackageCommand = "publish" | "unpublish" | "archive" | "duplicate" | "delete" | "preview" | "pdf";
+export type PackageCommand = "publish" | "unpublish" | "archive" | "duplicate" | "delete" | "preview";
 
 const MESSAGES: Record<PackageCommand, string> = {
   publish: "Published. The website updates within a minute.",
@@ -42,21 +44,44 @@ const MESSAGES: Record<PackageCommand, string> = {
   duplicate: "Copy created.",
   delete: "Deleted.",
   preview: "Preview link ready.",
-  pdf: "PDF ready.",
 };
 
-/** Lifecycle and one-off actions. Returns the API's data (new package id, preview URL, PDF version...). */
+/** Lifecycle and one-off actions. Returns the API's data (new package id, preview URL...). */
 export async function runPackageCommand(id: string, command: PackageCommand): Promise<ActionResult<Record<string, unknown>>> {
   const result = await attempt(async () => {
     switch (command) {
       case "delete":
         return (await api<Record<string, unknown>>(`/admin/packages/${id}`, { method: "DELETE" })).data;
-      case "pdf":
-        return (await api<Record<string, unknown>>(`/admin/packages/${id}/pdf`, { method: "POST" })).data;
       default:
         return (await api<Record<string, unknown>>(`/admin/packages/${id}/${command}`, { method: "POST" })).data;
     }
   }, MESSAGES[command]);
   if (result.ok) refresh(command === "delete" ? undefined : id);
+  return result;
+}
+
+/** Uploads or replaces the package's itinerary PDF. The file is checked here and again, with its contents, by the API. */
+export async function uploadItineraryPdf(id: string, form: FormData): Promise<ActionResult<{ warning?: string }>> {
+  const file = form.get("file");
+  if (!(file instanceof File)) return { ok: false, message: "Choose a PDF file.", fieldErrors: {} };
+  const problem = pdfFileProblem(file);
+  if (problem) return { ok: false, message: problem, fieldErrors: {} };
+  const upload = new FormData();
+  upload.append("file", file, file.name);
+  const result = await attempt(
+    async () => (await api<{ warning?: string }>(`/admin/packages/${id}/itinerary-pdf`, { method: "PUT", form: upload })).data,
+    "PDF uploaded.",
+  );
+  if (result.ok) refresh(id);
+  return result;
+}
+
+/** Removes the itinerary PDF of a package that is not published (admins only; the API enforces both). */
+export async function removeItineraryPdf(id: string): Promise<ActionResult<{ fileDeleted: boolean; warning?: string }>> {
+  const result = await attempt(
+    async () => (await api<{ fileDeleted: boolean; warning?: string }>(`/admin/packages/${id}/itinerary-pdf`, { method: "DELETE" })).data,
+    "PDF removed.",
+  );
+  if (result.ok) refresh(id);
   return result;
 }
