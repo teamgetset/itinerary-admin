@@ -3,11 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { api } from "@/lib/api";
 import { attempt, type ActionResult } from "@/lib/action-result";
-import { pdfFileProblem } from "@/lib/pdf-file.mjs";
+import { pdfFileProblem, pdfVersionPath } from "@/lib/pdf-file.mjs";
 
 /* Package editor actions. Each tab saves its own section through the API. */
 
-const SECTIONS = ["highlights", "inclusions", "exclusions", "itinerary", "prices", "hotels", "activities", "gallery"] as const;
+const SECTIONS = ["highlights", "inclusions", "exclusions", "good-to-know", "important-info", "itinerary", "prices", "hotels", "activities", "gallery"] as const;
 type Section = (typeof SECTIONS)[number];
 
 const refresh = (id?: string) => {
@@ -60,8 +60,15 @@ export async function runPackageCommand(id: string, command: PackageCommand): Pr
   return result;
 }
 
-/** Uploads or replaces the package's itinerary PDF. The file is checked here and again, with its contents, by the API. */
-export async function uploadItineraryPdf(id: string, form: FormData): Promise<ActionResult<{ warning?: string }>> {
+const UNKNOWN_VERSION = { ok: false as const, message: "Unknown PDF version.", fieldErrors: {} };
+
+/**
+ * Uploads or replaces one version of the package's itinerary PDF ("with-logo" or "without-logo").
+ * The file is checked here and again, with its contents, by the API.
+ */
+export async function uploadItineraryPdf(id: string, version: string, form: FormData): Promise<ActionResult<{ warning?: string }>> {
+  const path = pdfVersionPath(version);
+  if (path === null) return UNKNOWN_VERSION;
   const file = form.get("file");
   if (!(file instanceof File)) return { ok: false, message: "Choose a PDF file.", fieldErrors: {} };
   const problem = pdfFileProblem(file);
@@ -69,17 +76,22 @@ export async function uploadItineraryPdf(id: string, form: FormData): Promise<Ac
   const upload = new FormData();
   upload.append("file", file, file.name);
   const result = await attempt(
-    async () => (await api<{ warning?: string }>(`/admin/packages/${id}/itinerary-pdf`, { method: "PUT", form: upload })).data,
+    async () => (await api<{ warning?: string }>(`/admin/packages/${id}/itinerary-pdf${path}`, { method: "PUT", form: upload })).data,
     "PDF uploaded.",
   );
   if (result.ok) refresh(id);
   return result;
 }
 
-/** Removes the itinerary PDF of a package that is not published (admins only; the API enforces both). */
-export async function removeItineraryPdf(id: string): Promise<ActionResult<{ fileDeleted: boolean; warning?: string }>> {
+/**
+ * Removes one version of the itinerary PDF (admins only). The one with the logo only while the package is not
+ * published; the API enforces both.
+ */
+export async function removeItineraryPdf(id: string, version: string): Promise<ActionResult<{ fileDeleted: boolean; warning?: string }>> {
+  const path = pdfVersionPath(version);
+  if (path === null) return UNKNOWN_VERSION;
   const result = await attempt(
-    async () => (await api<{ fileDeleted: boolean; warning?: string }>(`/admin/packages/${id}/itinerary-pdf`, { method: "DELETE" })).data,
+    async () => (await api<{ fileDeleted: boolean; warning?: string }>(`/admin/packages/${id}/itinerary-pdf${path}`, { method: "DELETE" })).data,
     "PDF removed.",
   );
   if (result.ok) refresh(id);

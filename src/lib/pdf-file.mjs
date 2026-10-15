@@ -8,6 +8,20 @@
 
 export const PDF_MAX_BYTES = 4 * 1024 * 1024;
 
+/** The two versions of a package's itinerary PDF, by the name the API uses. Only the one with the logo is required. */
+export const PDF_VERSIONS = /** @type {const} */ (["with-logo", "without-logo"]);
+
+/**
+ * The API path suffix for a version, or null for anything else (server actions receive it from the browser).
+ * The version with the logo uses the original path, so it also works with an API from before there were two.
+ * @param {unknown} version
+ */
+export function pdfVersionPath(version) {
+  if (version === "with-logo") return "";
+  if (version === "without-logo") return "/without-logo";
+  return null;
+}
+
 /**
  * What is wrong with a chosen file, or null when it can be uploaded.
  * @param {{ size: number, type: string }} file

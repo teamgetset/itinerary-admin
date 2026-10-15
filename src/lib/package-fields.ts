@@ -16,7 +16,6 @@ export const PACKAGE_FIELDS: FieldConfig[] = [
   { name: "arrivalCity", label: "Arrival city", type: "text", nullable: true },
   { name: "heroImageId", label: "Hero image", type: "image", nullable: true, help: "Required to publish. Used on cards and the package page." },
   { name: "keywords", label: "Search keywords", type: "lines", help: "One per line: words people might search for (honeymoon, skiing)." },
-  { name: "importantInfo", label: "Trip-specific notes", type: "lines", help: "One per line. Shown after the site-wide important information.", wide: true },
   { name: "displayOrder", label: "Display order", type: "number", section: "Listing", help: "Lower numbers come first." },
   { name: "isFeatured", label: "Featured", type: "checkbox" },
   { name: "isRecommended", label: "Recommend on other package pages", type: "checkbox" },

@@ -23,6 +23,7 @@ const TABS = [
   ["activities", "Activities"],
   ["pricing", "Pricing"],
   ["inclusions", "Inclusions & exclusions"],
+  ["info", "Good to know & info"],
   ["seo", "SEO"],
   ["publish", "PDF & publish"],
 ] as const;
@@ -38,6 +39,9 @@ interface EditorPackage extends Record<string, unknown> {
   branch: { name: string };
   destination: { name: string };
   gallery: { mediaId: string; image: { id: string; url: string; alt: string } | null }[];
+  /** Missing on packages saved before "Good to know" existed. */
+  goodToKnow?: { title: string; description: string | null }[];
+  importantInfo?: string[];
   highlights: { title: string; description: string | null }[];
   inclusions: { title: string; description: string | null }[];
   exclusions: { title: string; description: string | null }[];
@@ -46,6 +50,8 @@ interface EditorPackage extends Record<string, unknown> {
   hotels: { hotelId: string; nights: number; roomType: string | null; mealPlan: string | null; isDefault: boolean }[];
   activities: { activityId: string }[];
   itineraryPdf: ItineraryPdf | null;
+  /** Missing from an API older than the second version. */
+  itineraryPdfWithoutLogo?: ItineraryPdf | null;
 }
 
 export async function generateMetadata({ params }: PageProps<"/packages/[id]">) {
@@ -90,6 +96,38 @@ export default async function PackageEditorPage({ params, searchParams }: PagePr
             <ListEditor packageId={id} section="exclusions" initial={pkg.exclusions} noun="Exclusion" intro="What it does not include." />
           </div>
         );
+      case "info":
+        return (
+          <div className="grid gap-8 xl:grid-cols-2">
+            <section aria-labelledby="good-to-know-heading">
+              <h3 id="good-to-know-heading" className="mb-1 font-semibold text-navy">
+                Good to know
+              </h3>
+              <ListEditor
+                packageId={id}
+                section="good-to-know"
+                initial={pkg.goodToKnow ?? []}
+                noun="Tip"
+                saveLabel="Save good to know"
+                intro="Practical tips for this trip, e.g. “Dress code” with “Cover shoulders and knees at mosques”. Shown under Good to know on the package page, after the destination's travel facts."
+              />
+            </section>
+            <section aria-labelledby="important-info-heading">
+              <h3 id="important-info-heading" className="mb-1 font-semibold text-navy">
+                Important information
+              </h3>
+              <ListEditor
+                packageId={id}
+                section="important-info"
+                initial={(pkg.importantInfo ?? []).map((title) => ({ title, description: null }))}
+                noun="Note"
+                detail={false}
+                saveLabel="Save important information"
+                intro="Notes for this trip only, one per line (up to 20). Shown under Important information, after the notes for every package (Global content → Package defaults)."
+              />
+            </section>
+          </div>
+        );
       case "itinerary": {
         const [hotels, activities] = await Promise.all([
           api<{ id: string; name: string; location: string }[]>("/admin/hotels?pageSize=100"),
@@ -131,6 +169,7 @@ export default async function PackageEditorPage({ params, searchParams }: PagePr
             status={pkg.status}
             checklist={check.data.checklist}
             itineraryPdf={pkg.itineraryPdf}
+            itineraryPdfWithoutLogo={pkg.itineraryPdfWithoutLogo ?? null}
             canPublish={can(user, "ADMIN")}
             canRemovePdf={can(user, "ADMIN")}
           />

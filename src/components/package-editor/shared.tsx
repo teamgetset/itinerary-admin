@@ -75,23 +75,32 @@ interface ListItem {
   description: string;
 }
 
-/** Highlights, inclusions and exclusions: an ordered list of short texts with optional detail. */
+/**
+ * Highlights, inclusions, exclusions and "Good to know": an ordered list of short texts with optional detail.
+ * With `detail={false}` ("Important information") each item is one line of text, saved as a plain string.
+ */
 export function ListEditor({
   packageId,
   section,
   initial,
   noun,
   intro,
+  detail = true,
+  saveLabel = `Save ${section}`,
 }: {
   packageId: string;
-  section: "highlights" | "inclusions" | "exclusions";
+  section: "highlights" | "inclusions" | "exclusions" | "good-to-know" | "important-info";
   initial: { title: string; description: string | null }[];
   noun: string;
   intro: string;
+  detail?: boolean;
+  saveLabel?: string;
 }) {
   const [items, setItems] = useState<ListItem[]>(() => initial.map((item) => ({ key: uid(), title: item.title, description: item.description ?? "" })));
   const { save, pending, result, errors } = useSectionSave(packageId, section);
   const update = (index: number, patch: Partial<ListItem>) => setItems(items.map((item, i) => (i === index ? { ...item, ...patch } : item)));
+  // The API reports a plain line's error at "items.0" and a titled item's at "items.0.title".
+  const errorFor = (index: number) => errors[detail ? `items.${index}.title` : `items.${index}`];
 
   return (
     <div>
@@ -106,17 +115,19 @@ export function ListEditor({
                   aria-label={`${noun} ${index + 1}`}
                   value={item.title}
                   onChange={(event) => update(index, { title: event.target.value })}
-                  aria-invalid={errors[`items.${index}.title`] ? true : undefined}
+                  aria-invalid={errorFor(index) ? true : undefined}
                   className={inputStyles}
                 />
-                <FieldError message={errors[`items.${index}.title`]} />
-                <input
-                  aria-label={`${noun} ${index + 1} detail (optional)`}
-                  placeholder="Optional detail"
-                  value={item.description}
-                  onChange={(event) => update(index, { description: event.target.value })}
-                  className={`${inputStyles} text-muted`}
-                />
+                <FieldError message={errorFor(index)} />
+                {detail && (
+                  <input
+                    aria-label={`${noun} ${index + 1} detail (optional)`}
+                    placeholder="Optional detail"
+                    value={item.description}
+                    onChange={(event) => update(index, { description: event.target.value })}
+                    className={`${inputStyles} text-muted`}
+                  />
+                )}
               </div>
               <ItemControls index={index} count={items.length} label={`${noun} ${index + 1}`} onMove={(to) => setItems(move(items, index, to))} onRemove={() => setItems(items.filter((_, i) => i !== index))} />
             </div>
@@ -130,8 +141,8 @@ export function ListEditor({
       <SaveBar
         pending={pending}
         result={result}
-        label={`Save ${section}`}
-        onSave={() => save({ items: items.map(({ title, description }) => ({ title, description: description.trim() || null })) })}
+        label={saveLabel}
+        onSave={() => save({ items: items.map(({ title, description }) => (detail ? { title, description: description.trim() || null } : title)) })}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { PDF_MAX_BYTES, pdfFileProblem } from "./pdf-file.mjs";
+import { PDF_MAX_BYTES, pdfFileProblem, pdfVersionPath } from "./pdf-file.mjs";
 
 const pdf = (size) => ({ size, type: "application/pdf" });
 
@@ -15,6 +15,12 @@ test("empty, oversized and non-PDF files are stopped before uploading, with a cl
   assert.match(pdfFileProblem(pdf(6 * 1024 * 1024)), /^This PDF is 6\.0 MB/);
   assert.equal(pdfFileProblem({ size: 100, type: "image/jpeg" }), "Choose a PDF file.");
   assert.equal(pdfFileProblem({ size: 100, type: "" }), "Choose a PDF file.");
+});
+
+test("each PDF version maps to its own API path; anything else is refused", () => {
+  assert.equal(pdfVersionPath("with-logo"), "");
+  assert.equal(pdfVersionPath("without-logo"), "/without-logo");
+  for (const other of [undefined, "", "../photos", "with-logo/../x", "WITHOUT-LOGO"]) assert.equal(pdfVersionPath(other), null);
 });
 
 test("4 MB plus the form's overhead stays under Vercel's 4.5 MB request limit", () => {
