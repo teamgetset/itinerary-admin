@@ -39,15 +39,17 @@ interface EditorPackage extends Record<string, unknown> {
   branch: { name: string };
   destination: { name: string };
   gallery: { mediaId: string; image: { id: string; url: string; alt: string } | null }[];
-  /** Missing on packages saved before "Good to know" existed. */
+  /** Exactly what the package page shows under "Good to know" and "Important information" (missing from older APIs). */
   goodToKnow?: { title: string; description: string | null }[];
   importantInfo?: string[];
+  /** False while those are still the shared content (destination travel facts, Global content notes). */
+  ownInfo?: boolean;
   highlights: { title: string; description: string | null }[];
   inclusions: { title: string; description: string | null }[];
   exclusions: { title: string; description: string | null }[];
   itinerary: ItineraryDayInput[];
   prices: { currencyCode: string; priceType: string; amount: number }[];
-  hotels: { hotelId: string; nights: number; roomType: string | null; mealPlan: string | null; isDefault: boolean }[];
+  hotels: { hotelId: string | null; nights: number | null; roomType: string | null; mealPlan: string | null; isDefault: boolean }[];
   activities: { activityId: string }[];
   itineraryPdf: ItineraryPdf | null;
   /** Missing from an API older than the second version. */
@@ -98,34 +100,41 @@ export default async function PackageEditorPage({ params, searchParams }: PagePr
         );
       case "info":
         return (
-          <div className="grid gap-8 xl:grid-cols-2">
-            <section aria-labelledby="good-to-know-heading">
-              <h3 id="good-to-know-heading" className="mb-1 font-semibold text-navy">
-                Good to know
-              </h3>
-              <ListEditor
-                packageId={id}
-                section="good-to-know"
-                initial={pkg.goodToKnow ?? []}
-                noun="Tip"
-                saveLabel="Save good to know"
-                intro="Practical tips for this trip, e.g. “Dress code” with “Cover shoulders and knees at mosques”. Shown under Good to know on the package page, after the destination's travel facts."
-              />
-            </section>
-            <section aria-labelledby="important-info-heading">
-              <h3 id="important-info-heading" className="mb-1 font-semibold text-navy">
-                Important information
-              </h3>
-              <ListEditor
-                packageId={id}
-                section="important-info"
-                initial={(pkg.importantInfo ?? []).map((title) => ({ title, description: null }))}
-                noun="Note"
-                detail={false}
-                saveLabel="Save important information"
-                intro="Notes for this trip only, one per line (up to 20). Shown under Important information, after the notes for every package (Global content → Package defaults)."
-              />
-            </section>
+          <div>
+            <p className="mb-5 max-w-3xl text-sm text-muted">
+              {pkg.ownInfo
+                ? "These two lists are exactly what the package page shows under “Good to know” and “Important information”, below “What's included”."
+                : `This package still shows the shared content: the travel facts of ${pkg.destination.name} (Destinations) and the notes for every package (Global content › Package defaults). The lists below are that content. Edit and save to give this package its own lists; changes to the shared content then no longer affect it.`}
+            </p>
+            <div className="grid gap-8 xl:grid-cols-2">
+              <section aria-labelledby="good-to-know-heading">
+                <h3 id="good-to-know-heading" className="mb-1 font-semibold text-navy">
+                  Good to know
+                </h3>
+                <ListEditor
+                  packageId={id}
+                  section="good-to-know"
+                  initial={pkg.goodToKnow ?? []}
+                  noun="Item"
+                  saveLabel="Save good to know"
+                  intro="Each item is a label and its detail, e.g. “Currency” with “UAE dirham (AED)”. An empty list hides the section."
+                />
+              </section>
+              <section aria-labelledby="important-info-heading">
+                <h3 id="important-info-heading" className="mb-1 font-semibold text-navy">
+                  Important information
+                </h3>
+                <ListEditor
+                  packageId={id}
+                  section="important-info"
+                  initial={(pkg.importantInfo ?? []).map((title) => ({ title, description: null }))}
+                  noun="Note"
+                  detail={false}
+                  saveLabel="Save important information"
+                  intro="One note per line (up to 40). An empty list hides the notes; the terms and conditions from Global content still follow them."
+                />
+              </section>
+            </div>
           </div>
         );
       case "itinerary": {

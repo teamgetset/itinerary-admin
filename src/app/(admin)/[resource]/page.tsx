@@ -5,6 +5,7 @@ import { formatAmount, formatDate, humanize } from "@/lib/format";
 import { RESOURCES, type ColumnConfig } from "@/lib/resources";
 import { ReorderButtons } from "@/components/row-actions";
 import { Badge, ButtonLink, EmptyState, PageHeader, Pagination, Table, Thumb, inputStyles, buttonStyles } from "@/components/ui";
+import { FilterForm } from "@/components/filter-form";
 
 type Row = Record<string, unknown> & { id: string };
 
@@ -58,7 +59,7 @@ export default async function ResourceListPage({ params, searchParams }: PagePro
         actions={can(user, config.write) && <ButtonLink href={`/${config.key}/new`}>New {config.singular}</ButtonLink>}
       />
 
-      <form className="mb-4 flex flex-col gap-2 sm:flex-row" role="search">
+      <FilterForm className="mb-4 flex flex-col gap-2 sm:flex-row" clearHref={`/${config.key}`} active={!!q || Object.keys(filters).length > 0}>
         <input type="search" name="q" defaultValue={q} placeholder={`Search ${config.title.toLowerCase()}`} aria-label="Search" className={`${inputStyles} sm:max-w-xs`} />
         {(config.filters ?? []).map((filter) => (
           <select key={filter.name} name={filter.name} defaultValue={filters[filter.name] ?? ""} aria-label={filter.label} className={`${inputStyles} sm:w-44`}>
@@ -73,7 +74,7 @@ export default async function ResourceListPage({ params, searchParams }: PagePro
         <button type="submit" className={buttonStyles.secondary}>
           Filter
         </button>
-      </form>
+      </FilterForm>
 
       {rows.length === 0 ? (
         <EmptyState title={`No ${config.title.toLowerCase()} found`}>{q ? "Try another search." : null}</EmptyState>

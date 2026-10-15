@@ -7,7 +7,8 @@ import { NextResponse, type NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   if (!request.cookies.has("getset_admin_session")) {
     const login = new URL("/login", request.url);
-    if (request.nextUrl.pathname !== "/") login.searchParams.set("next", request.nextUrl.pathname);
+    // The query string too, so a filtered list (/packages?branchId=...) comes back as it was after signing in.
+    if (request.nextUrl.pathname !== "/") login.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search);
     return NextResponse.redirect(login);
   }
   return NextResponse.next();

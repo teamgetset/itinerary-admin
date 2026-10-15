@@ -54,7 +54,8 @@ const BLOCKS: { key: string; title: string; description: string; fields: Content
   {
     key: "package.defaults",
     title: "Package defaults",
-    description: "Shown on every package page. Uploaded itinerary PDFs are not changed by these notes.",
+    description:
+      "The Important information notes for packages that have not saved their own (Packages › Good to know & info), and the terms shown on every package page. Uploaded itinerary PDFs are not changed by these notes.",
     fields: [
       { key: "importantInfo", label: "Important information", type: "lines" },
       { key: "terms", label: "Terms and conditions", type: "lines", help: "One clause per line. Leave empty to hide the section." },

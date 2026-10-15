@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import { formatAmount, formatDate, formatDateTime, humanize } from "@/lib/format";
 import { ENQUIRY_STATUSES as STATUSES, type Enquiry } from "@/lib/enquiries";
 import { Badge, EmptyState, PageHeader, Pagination, STATUS_TONE, Table, buttonStyles, inputStyles } from "@/components/ui";
+import { FilterForm } from "@/components/filter-form";
 
 export const metadata: Metadata = { title: "Enquiries" };
 
@@ -22,7 +23,7 @@ export default async function EnquiriesPage({ searchParams }: PageProps<"/enquir
   return (
     <>
       <PageHeader title="Enquiries" description="Requests from the website's enquiry form, newest first. WhatsApp chats go straight to the branch and are not listed here." />
-      <form role="search" className="mb-4 grid gap-2 sm:grid-cols-2 lg:flex">
+      <FilterForm className="mb-4 grid gap-2 sm:grid-cols-2 lg:flex" clearHref="/enquiries" active={Object.values(filters).some(Boolean)}>
         <input type="search" name="q" defaultValue={filters.q} placeholder="Name, phone, email or package" aria-label="Search enquiries" className={`${inputStyles} lg:max-w-xs`} />
         <select name="status" defaultValue={filters.status ?? ""} aria-label="Status" className={`${inputStyles} lg:w-44`}>
           <option value="">Any status</option>
@@ -43,7 +44,7 @@ export default async function EnquiriesPage({ searchParams }: PageProps<"/enquir
         <button type="submit" className={buttonStyles.secondary}>
           Filter
         </button>
-      </form>
+      </FilterForm>
 
       {rows.length === 0 ? (
         <EmptyState title="No enquiries match" />

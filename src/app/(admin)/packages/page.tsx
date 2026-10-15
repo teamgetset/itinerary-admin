@@ -4,6 +4,7 @@ import { api, can, currentUser } from "@/lib/api";
 import { formatAmount, formatDate, humanize } from "@/lib/format";
 import { PackageActions } from "@/components/package-actions";
 import { Badge, ButtonLink, EmptyState, PageHeader, Pagination, STATUS_TONE, Table, Thumb, buttonStyles, inputStyles } from "@/components/ui";
+import { FilterForm } from "@/components/filter-form";
 
 export const metadata: Metadata = { title: "Packages" };
 
@@ -44,7 +45,7 @@ export default async function PackagesPage({ searchParams }: PageProps<"/package
         actions={<ButtonLink href="/packages/new">New package</ButtonLink>}
       />
 
-      <form role="search" className="mb-4 grid gap-2 sm:grid-cols-2 lg:flex">
+      <FilterForm className="mb-4 grid gap-2 sm:grid-cols-2 lg:flex" clearHref="/packages" active={Object.values(filters).some(Boolean)}>
         <input type="search" name="q" defaultValue={filters.q} placeholder="Title, slug, destination or branch" aria-label="Search packages" className={`${inputStyles} lg:max-w-xs`} />
         <select name="status" defaultValue={filters.status ?? ""} aria-label="Status" className={`${inputStyles} lg:w-40`}>
           <option value="">Any status</option>
@@ -71,7 +72,7 @@ export default async function PackagesPage({ searchParams }: PageProps<"/package
         <button type="submit" className={buttonStyles.secondary}>
           Filter
         </button>
-      </form>
+      </FilterForm>
 
       {rows.length === 0 ? (
         <EmptyState title="No packages match">Clear the filters or create a new package.</EmptyState>

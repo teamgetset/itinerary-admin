@@ -124,6 +124,8 @@ export function ItineraryEditor({
     <div>
       <p className="mb-4 text-sm text-muted">
         {days.length} of {durationDays} days written. Publishing needs at least one day and no more days than the package lasts.
+        In each day's timeline, a step's type sets its icon on the website (“Other” shows none), and a linked catalogue activity adds
+        its photo, plus its description and location where the step has none.
       </p>
       <ol className="space-y-5">
         {days.map((day, dayIndex) => {

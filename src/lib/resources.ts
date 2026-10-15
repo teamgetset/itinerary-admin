@@ -157,7 +157,7 @@ export const RESOURCES: Record<string, ResourceConfig> = {
       { name: "description", label: "Description", type: "textarea", wide: true },
       { name: "heroImageId", label: "Hero image", type: "image", nullable: true, section: "Images" },
       { name: "thumbnailImageId", label: "Thumbnail", type: "image", nullable: true },
-      { name: "facts", label: "Travel facts", type: "facts", help: "Flight time, currency, visa: shown on package pages.", section: "Good to know", wide: true },
+      { name: "facts", label: "Travel facts", type: "facts", help: "Flight time, currency, visa: shown on this destination's page, and under “Good to know” on its packages until a package saves its own list.", section: "Good to know", wide: true },
       { ...order, section: "Visibility" },
       active,
     ],

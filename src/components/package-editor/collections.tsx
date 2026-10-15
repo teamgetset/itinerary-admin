@@ -8,24 +8,26 @@ import { FieldError, ItemControls, SaveBar, move, uid, useSectionSave } from "./
 
 type Option = { value: string; label: string };
 
-/** Hotel options: which hotels the package uses, for how many nights, and which one the price includes. */
+/** Hotel options: which hotels the package uses, for how many nights, and which one the price includes. Every field is optional. */
 export function HotelsEditor({
   packageId,
   initial,
   hotels,
 }: {
   packageId: string;
-  initial: { hotelId: string; nights: number; roomType: string | null; mealPlan: string | null; isDefault: boolean }[];
+  initial: { hotelId: string | null; nights: number | null; roomType: string | null; mealPlan: string | null; isDefault: boolean }[];
   hotels: Option[];
 }) {
-  const [rows, setRows] = useState(() => initial.map((row) => ({ key: uid(), hotelId: row.hotelId, nights: String(row.nights), roomType: row.roomType ?? "", mealPlan: row.mealPlan ?? "", isDefault: row.isDefault })));
+  const [rows, setRows] = useState(() =>
+    initial.map((row) => ({ key: uid(), hotelId: row.hotelId ?? "", nights: row.nights === null ? "" : String(row.nights), roomType: row.roomType ?? "", mealPlan: row.mealPlan ?? "", isDefault: row.isDefault })),
+  );
   const { save, pending, result, errors } = useSectionSave(packageId, "hotels");
   const update = (index: number, patch: Partial<(typeof rows)[number]>) => setRows(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
 
   return (
     <div>
       <p className="mb-4 text-sm text-muted">
-        Hotels marked “Included” are the stays in the listed price and appear in “Where you stay”. Others are alternatives. Without hotels, the page lists stays from the itinerary.
+        Every field is optional. Hotels marked “Included” are the stays in the listed price and appear in “Where you stay” with the details filled in; others are alternatives. A row without a hotel is saved but not shown, and an empty row is removed. Without an included hotel here, the package page has no “Where you stay” section (hotels chosen on itinerary days show only in that day's plan).
         {hotels.length === 0 && " Add hotels first under Travel › Hotels."}
       </p>
       <ol className="space-y-3">
@@ -53,7 +55,7 @@ export function HotelsEditor({
           </li>
         ))}
       </ol>
-      <button type="button" disabled={!hotels.length} onClick={() => setRows([...rows, { key: uid(), hotelId: "", nights: "1", roomType: "", mealPlan: "", isDefault: true }])} className={`${buttonStyles.secondary} mt-3`}>
+      <button type="button" disabled={!hotels.length} onClick={() => setRows([...rows, { key: uid(), hotelId: "", nights: "", roomType: "", mealPlan: "", isDefault: true }])} className={`${buttonStyles.secondary} mt-3`}>
         <Plus aria-hidden className="size-4" />
         Add hotel
       </button>
@@ -65,8 +67,8 @@ export function HotelsEditor({
         onSave={() =>
           save({
             hotels: rows.map((row) => ({
-              hotelId: row.hotelId,
-              nights: Number(row.nights),
+              hotelId: row.hotelId || null,
+              nights: row.nights.trim() ? Number(row.nights) : null,
               roomType: row.roomType.trim() || null,
               mealPlan: row.mealPlan.trim() || null,
               isDefault: row.isDefault,
