@@ -12,7 +12,7 @@ const TYPES = [
 
 /**
  * Official price per traveller type, entered separately for every currency. Nothing is converted:
- * GETSET decides each INR and AED price. Publishing needs all of them.
+ * GETSET decides each INR and AED price. The publish checklist flags any that are missing.
  */
 export function PricingEditor({
   packageId,
@@ -85,7 +85,7 @@ export function PricingEditor({
           </tbody>
         </table>
       </div>
-      {missing.length > 0 && <p className="mt-3 rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning">Needed before publishing: {missing.join(", ")}.</p>}
+      {missing.length > 0 && <p className="mt-3 rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning">Not priced yet: {missing.join(", ")}. Prices are optional: you can still publish, and the website shows “On request” wherever one is missing.</p>}
       <FieldError message={errors.prices} />
       <SaveBar
         pending={pending}

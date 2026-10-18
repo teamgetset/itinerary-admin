@@ -27,7 +27,7 @@ export function HotelsEditor({
   return (
     <div>
       <p className="mb-4 text-sm text-muted">
-        Every field is optional. Hotels marked “Included” are the stays in the listed price and appear in “Where you stay” with the details filled in; others are alternatives. A row without a hotel is saved but not shown, and an empty row is removed. Without an included hotel here, the package page has no “Where you stay” section (hotels chosen on itinerary days show only in that day's plan).
+        Every field is optional. Hotels marked “Included” are the stays in the listed price and appear in “Where you stay” with the details filled in; others are alternatives. A row without a hotel is saved but not shown, and an empty row is removed. Without an included hotel here, the package page has no “Where you stay” section (hotels chosen on itinerary days show only in that day’s plan).
         {hotels.length === 0 && " Add hotels first under Travel › Hotels."}
       </p>
       <ol className="space-y-3">

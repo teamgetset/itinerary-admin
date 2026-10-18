@@ -19,13 +19,13 @@ export interface ItineraryPdf {
 
 type Version = "with-logo" | "without-logo";
 
-/** What each version's block says. Only the version with the logo is required to publish. */
+/** What each version's block says. The version with the logo is the main download; neither is needed to publish. */
 const VERSION_TEXT: Record<Version, { title: string; empty: string; emptyLive?: string; confirmRemove: string }> = {
   "with-logo": {
     title: "Itinerary PDF with logo",
-    empty: "Upload the prepared itinerary with the GETSET logo. It is required to publish.",
+    empty: "Upload the prepared itinerary with the GETSET logo. Until then, customers see the itinerary PDF as not available.",
     emptyLive: "This live package has no itinerary PDF: customers see it as not available. Upload one.",
-    confirmRemove: "Remove the itinerary PDF with logo? Its file is deleted, and the package cannot be published again until a new one is uploaded.",
+    confirmRemove: "Remove the itinerary PDF with logo? Its file is deleted, and customers can no longer download it.",
   },
   "without-logo": {
     title: "Itinerary PDF without logo",
@@ -36,7 +36,7 @@ const VERSION_TEXT: Record<Version, { title: string; empty: string; emptyLive?: 
 
 /**
  * Edit -> Preview -> upload the itinerary PDFs -> Publish, on one screen.
- * Every checklist item, including the PDF with logo, must pass before Publish (the API enforces it again).
+ * The checklist is a guide: it shows what is still missing, but never stops an admin from publishing.
  */
 export function PublishPanel({
   packageId,
@@ -82,12 +82,12 @@ export function PublishPanel({
               ? canPublish
                 ? "Everything is in place. Preview it, then publish."
                 : "Everything is in place. Ask an admin to publish it."
-              : missing.length === 1 && missing[0]!.key === "itineraryPdf"
-                ? "Upload the itinerary PDF with logo to publish this package."
-                : "Complete the checklist to publish. Drafts may be incomplete; published packages may not."}
+              : canPublish
+                ? `The checklist is a guide: ${missing.length} ${missing.length === 1 ? "item is" : "items are"} still missing, but you can publish now. The website shows only the parts that are filled in.`
+                : "The checklist is a guide: some items are still missing. Ask an admin to publish it when it is ready."}
         </p>
         <div className="mt-4">
-          <PackageActions id={packageId} status={status} canPublish={canPublish && (ready || live)} />
+          <PackageActions id={packageId} status={status} canPublish={canPublish} />
         </div>
       </section>
 
@@ -113,8 +113,8 @@ function ItineraryPdfSection({
   canRemove: boolean;
 }) {
   const text = VERSION_TEXT[version];
-  // The version with the logo is required, so a live package keeps it; the one without can always be removed.
-  const required = version === "with-logo";
+  // The version with the logo is the main download: it has the original preview link and a reminder while missing.
+  const main = version === "with-logo";
   const helpId = `itinerary-pdf-help-${version}`;
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -170,7 +170,6 @@ function ItineraryPdfSection({
     <section aria-label={text.title}>
       <h3 className="mb-3 flex items-center gap-2 font-semibold text-navy">
         <FilePdf aria-hidden className="size-5" /> {text.title}
-        {!required && <Badge>Optional</Badge>}
       </h3>
       {pdf ? (
         <div className="rounded-lg border border-line p-3 text-sm">
@@ -179,13 +178,13 @@ function ItineraryPdfSection({
             {formatBytes(pdf.sizeBytes)} · uploaded {formatDateTime(pdf.uploadedAt)}
             {pdf.uploadedBy ? ` by ${pdf.uploadedBy}` : ""}
           </p>
-          <a href={`/pdf/${packageId}${required ? "" : "?version=without-logo"}`} target="_blank" rel="noreferrer" className="mt-1 inline-block font-semibold text-cobalt hover:underline">
+          <a href={`/pdf/${packageId}${main ? "" : "?version=without-logo"}`} target="_blank" rel="noreferrer" className="mt-1 inline-block font-semibold text-cobalt hover:underline">
             Preview PDF
           </a>
         </div>
       ) : (
         <p className="text-sm">
-          {required && (
+          {main && (
             <>
               <Badge tone="warning">No PDF yet</Badge>{" "}
             </>
@@ -219,13 +218,12 @@ function ItineraryPdfSection({
           <button type="submit" disabled={pending || !!problem} className={buttonStyles.primary}>
             {busy === "upload" ? "Uploading…" : pdf ? "Replace PDF" : "Upload PDF"}
           </button>
-          {pdf && canRemove && (!live || !required) && (
+          {pdf && canRemove && (
             <button type="button" onClick={remove} disabled={pending} className={buttonStyles.danger}>
               {busy === "remove" ? "Removing…" : "Remove PDF"}
             </button>
           )}
         </div>
-        {pdf && live && required && <p className="text-xs text-muted">A live package must keep its PDF with logo: upload a replacement, or unpublish the package to remove it.</p>}
         <FormMessage result={result} />
         {warning && (
           <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">

@@ -43,7 +43,7 @@ export default async function PdfsPage({ searchParams }: PageProps<"/pdfs">) {
     <>
       <PageHeader
         title="Itinerary PDFs"
-        description="Each package has its itinerary PDF in two versions, prepared outside GETSET and uploaded in its PDF & publish tab (PDF only, up to 4 MB): with the GETSET logo, required to publish, and optionally without it. Customers choose which one to download on the package page."
+        description="Each package has its itinerary PDF in two versions, prepared outside GETSET and uploaded in its PDF & publish tab (PDF only, up to 4 MB): with the GETSET logo and, optionally, without it. Customers choose which one to download on the package page."
       />
       <Table>
         <thead>
