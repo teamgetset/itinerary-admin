@@ -61,6 +61,8 @@ export interface ResourceConfig {
   write: AdminUser["role"];
   remove: AdminUser["role"] | null;
   removeLabel?: string;
+  /** Before deleting, the API lists what else the deletion changes (GET <apiPath>/:id/delete-check) in the confirmation. */
+  deleteCheck?: boolean;
   filters?: { name: string; label: string; options: { value: string; label: string }[] }[];
   /** Customer-site path of an item, for "View on site". */
   sitePath?: "branches" | "destinations";
@@ -174,6 +176,7 @@ export const RESOURCES: Record<string, ResourceConfig> = {
     orderable: true,
     write: "EDITOR",
     remove: "ADMIN",
+    deleteCheck: true,
     sitePath: "destinations",
   },
 

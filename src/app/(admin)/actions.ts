@@ -40,6 +40,19 @@ export async function deleteResource(key: string, id: string): Promise<ActionRes
   return result;
 }
 
+/** One consequence of a deletion, as the API words it: a summary, the records concerned, and an optional tip. */
+export interface DeleteEffect {
+  summary: string;
+  items: string[];
+  note?: string;
+}
+
+/** What else deleting this item changes (resources with `deleteCheck`), listed in the confirmation first. */
+export async function deleteEffects(key: string, id: string): Promise<ActionResult<DeleteEffect[]>> {
+  const { apiPath } = resource(key);
+  return attempt(async () => (await api<{ effects: DeleteEffect[] }>(`/admin/${apiPath}/${id}/delete-check`)).data.effects);
+}
+
 export async function reorderResource(key: string, ids: string[]): Promise<ActionResult<null>> {
   const { apiPath } = resource(key);
   const result = await attempt(async () => {

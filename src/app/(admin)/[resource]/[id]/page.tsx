@@ -44,7 +44,7 @@ export default async function EditResourcePage({ params }: PageProps<"/[resource
               </ButtonLink>
             )}
             {config.remove && can(user, config.remove) && (
-              <DeleteButton resource={config.key} id={row.id} name={name} label={config.removeLabel} redirectTo={`/${config.key}`} />
+              <DeleteButton resource={config.key} id={row.id} name={name} label={config.removeLabel} redirectTo={`/${config.key}`} check={config.deleteCheck} />
             )}
           </>
         }
