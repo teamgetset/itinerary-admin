@@ -8,8 +8,11 @@ import { buttonStyles } from "./ui";
 const CONFIRM: Partial<Record<PackageCommand, string>> = {
   unpublish: "Unpublish this package? It disappears from the website straight away.",
   archive: "Archive this package? It disappears from the website and moves to the archive.",
-  delete: "Delete this package? It is removed from the admin; enquiries that mention it keep their history.",
+  delete: "Delete this package? It is removed from the admin and there is no undo; enquiries that mention it keep their history.",
 };
+/** Deleting a live package also takes it off the website, so its question says so. */
+const CONFIRM_DELETE_LIVE =
+  "Delete this live package? It disappears from the website straight away and is removed from the admin, and there is no undo; enquiries that mention it keep their history.";
 
 /**
  * Lifecycle buttons for a package: preview, publish or unpublish, duplicate, archive, delete.
@@ -34,7 +37,8 @@ export function PackageActions({
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
 
   const run = (command: PackageCommand) => {
-    if (CONFIRM[command] && !confirm(CONFIRM[command])) return;
+    const question = command === "delete" && status === "PUBLISHED" ? CONFIRM_DELETE_LIVE : CONFIRM[command];
+    if (question && !confirm(question)) return;
     // Open the preview tab now, inside the click, so pop-up blockers allow it; the URL arrives after.
     const previewTab = command === "preview" ? window.open("about:blank", "_blank") : null;
     setBusy(command);
@@ -69,7 +73,7 @@ export function PackageActions({
         {canPublish && status === "PUBLISHED" && button("unpublish", "Unpublish")}
         {button("duplicate", "Duplicate")}
         {canPublish && status !== "ARCHIVED" && button("archive", "Archive")}
-        {canPublish && status !== "PUBLISHED" && button("delete", "Delete", "danger")}
+        {canPublish && button("delete", "Delete", "danger")}
       </div>
       {!onDone && message && (
         <p role={message.ok ? "status" : "alert"} className={`text-xs ${message.ok ? "text-success" : "text-danger"}`}>
