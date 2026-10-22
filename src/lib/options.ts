@@ -3,10 +3,14 @@ import type { FieldConfig } from "./resources";
 
 type Option = { value: string; label: string };
 
-/** Loads the dropdown options a form needs (branches, destinations, packages) and the active currencies. */
+/** Loads the dropdown options a form needs (branches, destinations, packages, currencies) and the active currencies. */
 export async function formData(fields: FieldConfig[]) {
   const sources = new Set(fields.flatMap((field) => (field.source ? [field.source] : [])));
   const load = async (source: string): Promise<[string, Option[]]> => {
+    if (source === "currencies") {
+      const { data } = await api<{ code: string; name: string; isActive: boolean }[]>("/admin/currencies");
+      return [source, data.filter((c) => c.isActive).map((c) => ({ value: c.code, label: `${c.code}, ${c.name}` }))];
+    }
     if (source === "packages") {
       const { data } = await api<{ id: string; title: string; status: string }[]>("/admin/packages?pageSize=100");
       return [source, data.map((pkg) => ({ value: pkg.id, label: pkg.status === "PUBLISHED" ? pkg.title : `${pkg.title} (${pkg.status.toLowerCase()})` }))];

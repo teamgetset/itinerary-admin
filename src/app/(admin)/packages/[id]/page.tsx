@@ -37,6 +37,8 @@ interface EditorPackage extends Record<string, unknown> {
   status: string;
   durationDays: number;
   branch: { name: string };
+  /** The branch's currency: the only one the package is priced in (missing from APIs older than that). */
+  currency?: string;
   destination: { name: string };
   gallery: { mediaId: string; image: { id: string; url: string; alt: string } | null }[];
   /** Exactly what the package page shows under "Good to know" and "Important information" (missing from older APIs). */
@@ -168,7 +170,9 @@ export default async function PackageEditorPage({ params, searchParams }: PagePr
       }
       case "pricing": {
         const currencies = await api<{ code: string; name: string; isActive: boolean }[]>("/admin/currencies");
-        return <PricingEditor packageId={id} initial={pkg.prices} currencies={currencies.data.filter((c) => c.isActive)} />;
+        // Only the branch's currency; prices kept in another one stay stored, untouched by saving.
+        const active = currencies.data.filter((c) => c.isActive && (!pkg.currency || c.code === pkg.currency));
+        return <PricingEditor packageId={id} initial={pkg.prices} currencies={active} branchName={pkg.branch.name} currency={pkg.currency} />;
       }
       case "publish": {
         const check = await api<{ checklist: { key: string; label: string; ok: boolean; message?: string }[] }>(`/admin/packages/${id}/publish-check`);

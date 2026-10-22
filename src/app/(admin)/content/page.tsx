@@ -24,7 +24,7 @@ const BLOCKS: { key: string; title: string; description: string; fields: Content
   {
     key: "testimonials",
     title: "Testimonials section",
-    description: "Shown above the footer on every page. The reviews themselves are under Testimonials.",
+    description: "Shown above the footer on every page except package pages, which show their own reviews. The reviews themselves are under Testimonials and Google reviews.",
     fields: [
       { key: "enabled", label: "Show the testimonials section", type: "checkbox" },
       { key: "heading", label: "Heading", type: "text" },

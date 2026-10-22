@@ -56,7 +56,7 @@ export default async function ResourceListPage({ params, searchParams }: PagePro
       <PageHeader
         title={config.title}
         description={config.description}
-        actions={can(user, config.write) && <ButtonLink href={`/${config.key}/new`}>New {config.singular}</ButtonLink>}
+        actions={can(user, config.write) && !config.noCreate && <ButtonLink href={`/${config.key}/new`}>New {config.singular}</ButtonLink>}
       />
 
       <FilterForm className="mb-4 flex flex-col gap-2 sm:flex-row" clearHref={`/${config.key}`} active={!!q || Object.keys(filters).length > 0}>

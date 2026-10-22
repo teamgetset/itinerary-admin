@@ -8,6 +8,60 @@ interface Dashboard {
   recentEnquiries: { id: string; name: string; status: string; createdAt: string; packageTitle: string | null; adults: number; children: number; infants: number }[];
   recentPackages: { id: string; title: string; status: string; updatedAt: string }[];
   activity: { action: string; entity: string; entityId: string | null; createdAt: string; admin: string | null }[];
+  /** Missing from an API older than the Google reviews integration. */
+  googleReviews?: {
+    configured: boolean;
+    profiles: number;
+    reviews: number;
+    locations: { title: string | null; averageRating: number | null; totalReviewCount: number }[];
+    fetchedAt: string | null;
+    error: string | null;
+  };
+}
+
+/** Whether the website's Google reviews are connected, what they show and when they were last fetched. */
+function GoogleReviewsCard({ status }: { status: NonNullable<Dashboard["googleReviews"]> }) {
+  const badge = !status.configured ? (
+    <Badge>Not connected</Badge>
+  ) : status.fetchedAt ? (
+    <Badge tone={status.error ? "warning" : "success"}>{status.error ? "Refresh failed" : "Connected"}</Badge>
+  ) : (
+    <Badge tone={status.error ? "danger" : "warning"}>{status.error ? "Error" : "Fetching"}</Badge>
+  );
+  return (
+    <Card title="Google reviews" actions={badge}>
+      {!status.configured ? (
+        <p className="text-sm text-muted">
+          Once connected, the reviews of GETSET&apos;s Google Business Profiles are shown on the website next to the testimonials. The profile
+          owner applies for Business Profile API access and signs in once; then the four GOOGLE_* settings go on Render (API README, “Google
+          reviews”).
+        </p>
+      ) : (
+        <div className="space-y-2 text-sm">
+          {status.locations.map((location, index) => (
+            <p key={index}>
+              <span className="font-semibold">{location.title ?? "Business Profile"}</span>
+              <span className="text-muted">
+                {location.averageRating !== null && ` · ${location.averageRating.toFixed(1)} out of 5`} · {plural(location.totalReviewCount, "review")}
+              </span>
+            </p>
+          ))}
+          {status.fetchedAt && (
+            <p className="text-muted">
+              {plural(status.reviews, "review")} from {plural(status.profiles, "profile")}, fetched {formatDateTime(status.fetchedAt)}. Refreshed every 6
+              hours.
+            </p>
+          )}
+          {status.error && (
+            <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-danger">
+              {status.fetchedAt ? "The last refresh failed; the copy above is still shown. " : "Could not fetch the reviews. "}
+              {status.error}
+            </p>
+          )}
+        </div>
+      )}
+    </Card>
+  );
 }
 
 export default async function DashboardPage() {
@@ -77,6 +131,8 @@ export default async function DashboardPage() {
             ))}
           </ul>
         </Card>
+
+        {data.googleReviews && <GoogleReviewsCard status={data.googleReviews} />}
 
         <Card title="Latest activity">
           <ul className="space-y-2.5 text-sm">

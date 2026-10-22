@@ -55,7 +55,7 @@ export function initialValues(fields: FieldConfig[], row: Values | null): Values
 export function payload(fields: FieldConfig[], values: Values, creating: boolean): Values {
   const body: Values = {};
   for (const field of fields) {
-    if (field.createOnly && !creating) continue;
+    if ((field.createOnly && !creating) || field.readOnly) continue;
     const value = values[field.name];
     const empty = value === "" || value === null || value === undefined;
     switch (field.type) {
@@ -221,7 +221,8 @@ function FieldRow({
   currencies: Currency[];
 }) {
   const id = `field-${field.name}`;
-  const common = { id, "aria-invalid": error ? true : undefined, "aria-describedby": error ? `${id}-error` : undefined };
+  const common = { id, readOnly: field.readOnly, "aria-invalid": error ? true : undefined, "aria-describedby": error ? `${id}-error` : undefined };
+  const textStyles = field.readOnly ? `${inputStyles} bg-mist!` : inputStyles;
   const heading = field.section ? <h3 className="border-t border-line pt-5 font-semibold text-navy sm:col-span-2">{field.section}</h3> : null;
   const shell = (control: ReactNode) => (
     <>
@@ -244,7 +245,9 @@ function FieldRow({
         </>
       );
     case "textarea":
-      return shell(<textarea {...common} rows={4} value={String(value)} onChange={(event) => onChange(event.target.value)} placeholder={field.placeholder} className={inputStyles} />);
+      return shell(
+        <textarea {...common} rows={field.readOnly ? 6 : 4} value={String(value)} onChange={(event) => onChange(event.target.value)} placeholder={field.placeholder} className={textStyles} />,
+      );
     case "lines":
       return shell(<textarea {...common} rows={4} value={String(value)} onChange={(event) => onChange(event.target.value)} className={inputStyles} />);
     case "select":
@@ -291,7 +294,7 @@ function FieldRow({
           value={String(value ?? "")}
           onChange={(event) => onChange(event.target.value)}
           placeholder={field.placeholder}
-          className={`${inputStyles} ${field.uppercase ? "uppercase" : ""}`}
+          className={`${textStyles} ${field.uppercase ? "uppercase" : ""}`}
         />,
       );
   }

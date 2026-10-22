@@ -11,17 +11,22 @@ const TYPES = [
 ] as const;
 
 /**
- * Official price per traveller type, entered separately for every currency. Nothing is converted:
- * GETSET decides each INR and AED price. The publish checklist flags any that are missing.
+ * Official price per traveller type, in the currency of the package's branch (Dubai AED, Calicut INR). Nothing is
+ * converted. Prices stored in another currency (from before) are not shown and saving leaves them as they are.
  */
 export function PricingEditor({
   packageId,
   initial,
   currencies,
+  branchName,
+  currency,
 }: {
   packageId: string;
   initial: { currencyCode: string; priceType: string; amount: number }[];
+  /** The currencies to enter: the branch's one (all active ones for an API older than prices per branch). */
   currencies: { code: string; name: string }[];
+  branchName?: string;
+  currency?: string;
 }) {
   const [cells, setCells] = useState<Record<string, string>>(() =>
     Object.fromEntries(initial.map((price) => [`${price.priceType}:${price.currencyCode}`, String(price.amount)])),
@@ -39,7 +44,15 @@ export function PricingEditor({
   return (
     <div>
       <p className="mb-4 text-sm text-muted">
-        Prices are per person, twin sharing. Enter each currency&apos;s official price; the website shows the one the visitor picks.
+        {currency && branchName ? (
+          <>
+            {branchName} branch packages are priced in <strong className="text-ink">{currency}</strong>, set on the branch, and the website
+            shows them in {currency}. Prices are per person, twin sharing.
+            {currencies.length === 0 && ` ${currency} is switched off in Currencies: switch it on to enter prices.`}
+          </>
+        ) : (
+          "Prices are per person, twin sharing. Enter each currency's official price."
+        )}
       </p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[32rem] text-sm">

@@ -9,7 +9,7 @@ import { Card, PageHeader } from "@/components/ui";
 
 export default async function NewResourcePage({ params }: PageProps<"/[resource]/new">) {
   const config = RESOURCES[(await params).resource];
-  if (!config) notFound();
+  if (!config || config.noCreate) notFound();
   const user = await currentUser();
   const fields = config.seo ? [...config.fields, ...seoFields] : config.fields;
   const { options, currencies } = await formData(fields);

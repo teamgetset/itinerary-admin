@@ -32,9 +32,11 @@ export interface FieldConfig {
   placeholder?: string;
   options?: { value: string; label: string }[];
   /** Options loaded from the API. */
-  source?: "branches" | "destinations" | "packages" | "categories" | "hotels" | "activities";
+  source?: "branches" | "destinations" | "packages" | "categories" | "hotels" | "activities" | "currencies";
   uppercase?: boolean;
   createOnly?: boolean;
+  /** Shown but not editable, and never sent. */
+  readOnly?: boolean;
   /** Section heading shown above this field. */
   section?: string;
   step?: string;
@@ -57,6 +59,8 @@ export interface ResourceConfig {
   fields: FieldConfig[];
   seo?: boolean;
   orderable?: boolean;
+  /** Items arrive another way (Google reviews are synced): no "New" button. */
+  noCreate?: boolean;
   /** Role needed to create and edit, and to delete. */
   write: AdminUser["role"];
   remove: AdminUser["role"] | null;
@@ -108,6 +112,14 @@ export const RESOURCES: Record<string, ResourceConfig> = {
       { name: "city", label: "City", type: "text", required: true },
       { name: "countryCode", label: "Country code", type: "text", required: true, uppercase: true, placeholder: "AE" },
       { name: "countryName", label: "Country", type: "text", required: true },
+      {
+        name: "currencyCode",
+        label: "Prices in",
+        type: "select",
+        source: "currencies",
+        required: true,
+        help: "The one currency this branch's packages are priced in and shown in on the website (Dubai AED, Calicut INR). Nothing is converted.",
+      },
       { name: "airportCode", label: "Departure airport code", type: "text", nullable: true, uppercase: true, placeholder: "DXB" },
       { name: "airportCity", label: "Airport city", type: "text", nullable: true },
       { name: "phone", label: "Phone", type: "text", required: true },
@@ -268,6 +280,7 @@ export const RESOURCES: Record<string, ResourceConfig> = {
       { key: "place", label: "Place" },
       { key: "rating", label: "Rating", kind: "stars" },
       { key: "reviewedAt", label: "Reviewed", kind: "date" },
+      { key: "packageTitle", label: "Package" },
       { key: "isPublished", label: "Status", kind: "published" },
     ],
     fields: [
@@ -290,6 +303,44 @@ export const RESOURCES: Record<string, ResourceConfig> = {
     removeLabel: "Delete",
     filters: [
       { name: "published", label: "Status", options: [{ value: "true", label: "Published" }, { value: "false", label: "Unpublished" }] },
+      { name: "rating", label: "Rating", options: [5, 4, 3, 2, 1].map((n) => ({ value: String(n), label: `${n} stars` })) },
+    ],
+  },
+
+  "google-reviews": {
+    key: "google-reviews",
+    apiPath: "google-reviews",
+    title: "Google reviews",
+    singular: "Google review",
+    description:
+      "Reviews of GETSET's Google Business Profiles, synced every 6 hours. Link a review to the package it is about to show it on that package's page; one without a package stays general (reviews band only). The words and stars stay as Google gives them.",
+    columns: [
+      { key: "customerName", label: "Reviewer" },
+      { key: "rating", label: "Rating", kind: "stars" },
+      { key: "excerpt", label: "Review" },
+      { key: "reviewedAt", label: "Reviewed", kind: "date" },
+      { key: "packageTitle", label: "Package" },
+    ],
+    fields: [
+      { name: "customerName", label: "Reviewer", type: "text", readOnly: true },
+      { name: "rating", label: "Rating (1 to 5)", type: "number", readOnly: true },
+      { name: "reviewedAt", label: "Review date", type: "date", readOnly: true },
+      { name: "profile", label: "Business Profile", type: "text", readOnly: true },
+      { name: "review", label: "Review", type: "textarea", readOnly: true, wide: true },
+      {
+        name: "packageId",
+        label: "Package",
+        type: "select",
+        source: "packages",
+        nullable: true,
+        help: "Only when the review is clearly about this package. None keeps it a general review.",
+      },
+    ],
+    noCreate: true,
+    write: "EDITOR",
+    remove: null,
+    filters: [
+      { name: "package", label: "Package", options: [{ value: "general", label: "General (no package)" }, { value: "linked", label: "Linked to a package" }] },
       { name: "rating", label: "Rating", options: [5, 4, 3, 2, 1].map((n) => ({ value: String(n), label: `${n} stars` })) },
     ],
   },

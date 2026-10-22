@@ -2,7 +2,7 @@ import type { FieldConfig } from "./resources";
 
 /** The package editor's "Details" tab. Lists (itinerary, prices...) have their own editors. */
 export const PACKAGE_FIELDS: FieldConfig[] = [
-  { name: "branchId", label: "Branch", type: "select", source: "branches", required: true, help: "The office that sells this package. Dubai and Calicut catalogues never mix." },
+  { name: "branchId", label: "Branch", type: "select", source: "branches", required: true, help: "The office that sells this package; it also sets the currency the package is priced in (Dubai AED, Calicut INR). Dubai and Calicut catalogues never mix." },
   { name: "destinationId", label: "Destination", type: "select", source: "destinations", required: true },
   { name: "categoryId", label: "Category", type: "select", source: "categories", nullable: true },
   { name: "title", label: "Package title", type: "text", required: true },

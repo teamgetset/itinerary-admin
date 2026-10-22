@@ -25,6 +25,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/">) {
       items: [
         { label: "Hero slides", href: "/hero-slides" },
         { label: "Testimonials", href: "/testimonials" },
+        { label: "Google reviews", href: "/google-reviews" },
         { label: "Global content", href: "/content" },
         { label: "Media library", href: "/media" },
         { label: "SEO", href: "/seo" },
