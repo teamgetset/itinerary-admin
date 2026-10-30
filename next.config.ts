@@ -5,7 +5,8 @@ import { adminUrls } from "./src/lib/urls.mjs";
 
 const nextConfig: NextConfig = {
   experimental: {
-    // Image uploads go through server actions (the API allows 10 MB images).
+    // Image uploads go through server actions. On Vercel the platform caps requests at 4.5 MB first, so the browser
+    // makes photos over 4 MB smaller before sending them (src/lib/image-upload.mjs).
     serverActions: { bodySizeLimit: "12mb" },
   },
 };

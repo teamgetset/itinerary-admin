@@ -5,9 +5,10 @@ import { useState, useTransition } from "react";
 import { UploadSimple } from "@phosphor-icons/react";
 import { archiveMedia, updateMedia, uploadMedia, type MediaItem } from "@/app/(admin)/actions";
 import { formatBytes, formatDate } from "@/lib/format";
+import { uploadImage } from "@/lib/image-upload.mjs";
 import { buttonStyles, inputStyles } from "./ui";
 
-/** Upload several images at once; each is checked by the API (type from its bytes, 10 MB limit). */
+/** Upload several images at once, one request each; photos over 4 MB are made smaller first (see image-upload.mjs). */
 export function UploadButton() {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -29,10 +30,7 @@ export function UploadButton() {
             start(async () => {
               const problems: string[] = [];
               for (const file of files) {
-                const form = new FormData();
-                form.append("file", file);
-                form.append("alt", file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "));
-                const result = await uploadMedia(form);
+                const result = await uploadImage(file, uploadMedia);
                 if (!result.ok) problems.push(`${file.name}: ${result.message}`);
               }
               setMessages(problems.length ? problems : [`Uploaded ${files.length} image${files.length === 1 ? "" : "s"}. Add alt text below.`]);

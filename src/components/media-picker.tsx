@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { ImageSquare, UploadSimple, X } from "@phosphor-icons/react";
 import { listMedia, uploadMedia, type MediaItem } from "@/app/(admin)/actions";
+import { uploadImage } from "@/lib/image-upload.mjs";
 import { buttonStyles, inputStyles } from "./ui";
 
 export interface PickedImage {
@@ -51,10 +52,7 @@ export function MediaPicker({ onPick, label = "Choose image" }: { onPick: (image
   const upload = (file: File) =>
     startUpload(async () => {
       setError(null);
-      const form = new FormData();
-      form.append("file", file);
-      form.append("alt", file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "));
-      const result = await uploadMedia(form);
+      const result = await uploadImage(file, uploadMedia);
       if (result.ok) pick({ id: result.data.id, url: result.data.url, alt: result.data.alt });
       else setError(result.message);
     });
